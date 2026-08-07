@@ -33,12 +33,16 @@ export const GoogleSearchEngine: React.FC<GoogleSearchEngineProps> = ({
     { name: 'Wikipedia', url: 'https://www.wikipedia.org', icon: '🌐' },
   ];
 
+  const primaryTargetDomain = cleanQuery.includes('.') 
+    ? (cleanQuery.startsWith('http') ? cleanQuery : `https://${cleanQuery}`)
+    : `https://${cleanQuery.toLowerCase().replace(/\s+/g, '')}.com`;
+
   // Dynamic Google Search Results Generator
   const searchResults = [
     {
       title: `${query} - Official Site & Information`,
-      url: `https://www.google.com/url?q=${encodeURIComponent(query)}`,
-      displayUrl: `https://${cleanQuery.toLowerCase().replace(/\s+/g, '')}.com`,
+      url: primaryTargetDomain,
+      displayUrl: primaryTargetDomain.replace(/^https?:\/\//, ''),
       snippet: `Explore official resources, documentation, updates, and community news for ${query}. Access features, security guidelines, and verified tools directly.`,
       sitelinks: [
         { name: 'Getting Started', desc: 'Step-by-step installation and quick start guides.' },

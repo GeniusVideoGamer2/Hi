@@ -177,6 +177,13 @@ async function startServer() {
         'Accept':
           'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
         'Accept-Language': clientLang,
+        'Sec-Ch-Ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'Sec-Ch-Ua-Platform': '"Windows"',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'cross-site',
+        'Upgrade-Insecure-Requests': '1',
       };
 
       if (clientIp) {
@@ -201,17 +208,18 @@ async function startServer() {
         const urlObj = new URL(formattedUrl);
         const origin = urlObj.origin;
         const baseTag = `<base href="${origin}/" target="_self">`;
+        const antiFrameBustScript = `<script>try{Object.defineProperty(window,'top',{get:function(){return window.self;}});Object.defineProperty(window,'parent',{get:function(){return window.self;}});}catch(e){}</script>`;
 
         // Strip restrictive meta tag CSP or frame restrictions in HTML
         html = html.replace(/<meta[^>]*http-equiv=["']?Content-Security-Policy["']?[^>]*>/gi, '');
         html = html.replace(/<meta[^>]*http-equiv=["']?X-Frame-Options["']?[^>]*>/gi, '');
 
         if (html.includes('<head>')) {
-          html = html.replace('<head>', `<head>${baseTag}`);
+          html = html.replace('<head>', `<head>${baseTag}${antiFrameBustScript}`);
         } else if (html.includes('<HEAD>')) {
-          html = html.replace('<HEAD>', `<HEAD>${baseTag}`);
+          html = html.replace('<HEAD>', `<HEAD>${baseTag}${antiFrameBustScript}`);
         } else {
-          html = baseTag + html;
+          html = baseTag + antiFrameBustScript + html;
         }
 
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -224,28 +232,36 @@ async function startServer() {
       }
     } catch (err: any) {
       console.error('Web Proxy Error:', err);
+      const targetUrl = (req.query.url as string) || 'https://www.google.com';
+      const cleanTarget = targetUrl.startsWith('http') ? targetUrl : 'https://' + targetUrl;
       res.status(200).send(`
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
-          <title>Google Chrome - Live Webview</title>
+          <title>ISTEK BROWSER - Automatic Web Connect</title>
           <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 40px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; }
-            .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 32px; max-width: 560px; text-align: center; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5); }
-            h2 { color: #f97316; margin-top: 0; font-size: 20px; }
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #020617; color: #f8fafc; padding: 24px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 85vh; }
+            .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 32px; max-width: 600px; width: 100%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); }
+            h2 { color: #38bdf8; margin-top: 0; font-size: 22px; font-weight: 800; }
             p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
-            .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #ea580c; color: white; padding: 12px 24px; border-radius: 9999px; text-decoration: none; font-weight: bold; font-size: 14px; transition: all 0.2s; }
-            .btn:hover { background: #f97316; transform: translateY(-1px); }
-            .url-badge { background: #0f172a; border: 1px solid #334155; padding: 8px 16px; border-radius: 8px; font-mono; font-size: 12px; color: #38bdf8; margin-bottom: 20px; word-break: break-all; }
+            .btn-group { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+            .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: #2563eb; color: white; padding: 12px 24px; border-radius: 9999px; text-decoration: none; font-weight: bold; font-size: 14px; transition: all 0.2s; border: none; cursor: pointer; }
+            .btn:hover { background: #3b82f6; transform: translateY(-1px); }
+            .btn-secondary { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; }
+            .btn-secondary:hover { background: #334155; }
+            .url-badge { background: #020617; border: 1px solid #334155; padding: 10px 18px; border-radius: 12px; font-family: monospace; font-size: 13px; color: #38bdf8; margin-bottom: 24px; word-break: break-all; font-weight: bold; }
           </style>
         </head>
         <body>
           <div class="card">
-            <h2>Protected Website View</h2>
-            <div class="url-badge">${req.query.url || 'Web Target'}</div>
-            <p>This external website blocks cross-origin iframe proxying. You can open it in a new window or use ISTEK Chrome Reader view.</p>
-            <a href="${req.query.url}" target="_blank" class="btn">Launch Website in Chrome Tab &rarr;</a>
+            <h2>ISTEK Web Connect Shield</h2>
+            <div class="url-badge">${cleanTarget}</div>
+            <p>Direct proxying was prevented by the destination domain security rules. You can connect directly or launch in a dedicated window below.</p>
+            <div class="btn-group">
+              <a href="${cleanTarget}" target="_blank" class="btn">Launch Direct Window &rarr;</a>
+              <button onclick="window.location.href='${cleanTarget}'" class="btn btn-secondary">Direct Embed Load</button>
+            </div>
           </div>
         </body>
         </html>
