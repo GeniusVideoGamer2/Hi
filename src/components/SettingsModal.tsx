@@ -33,9 +33,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "**" ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ "**" ]
   workflow_dispatch:
 
 jobs:
@@ -51,12 +51,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm ci || npm install
+      - name: Install Dependencies
+        run: npm install
 
-      - name: Build Web Application
+      - name: Build Web Assets
         run: npm run build
 
       - name: Set up Java JDK 17
@@ -65,12 +64,12 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Add Android Platform with Capacitor
+      - name: Add Android Platform & Sync Capacitor
         run: |
           npx cap add android || true
           npx cap sync android
 
-      - name: Build Android Debug APK with Gradle
+      - name: Build Android Debug APK
         run: |
           cd android
           chmod +x gradlew
@@ -79,7 +78,7 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: istek-browser-debug-apk
+          name: ISTEK-Browser-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30`;
 
