@@ -1,0 +1,6 @@
+{
+  "name": "ISTEK Browser Web App",
+  "description": "A full-featured ISTEK Browser Web Hub replicating ISTEK Shields, ISTEK Search, ISTEK AI Assistant, and ISTEK Rewards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
