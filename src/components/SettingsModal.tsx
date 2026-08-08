@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ShieldSettings, HistorySettings } from '../types';
-import { X, Settings, Shield, Sparkles, Globe, Smartphone, Download, Copy, Check, History, Search, Trash2 } from 'lucide-react';
+import { X, Settings, Shield, Sparkles, Globe, Smartphone, Download, Copy, Check, History, Search, Trash2, Monitor, FileCode, CheckCircle2 } from 'lucide-react';
 import { IstekLogo } from './IstekLogo';
 
 interface SettingsModalProps {
@@ -24,8 +24,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onToggleSiteHistory,
   onOpenHistoryModal,
 }) => {
-  const [activeTab, setActiveTab] = useState<'general' | 'history' | 'shields' | 'apk'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'history' | 'shields' | 'apk' | 'exe'>('general');
   const [copiedWorkflow, setCopiedWorkflow] = useState(false);
+  const [copiedExeWorkflow, setCopiedExeWorkflow] = useState(false);
 
   if (!isOpen) return null;
 
@@ -82,10 +83,57 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30`;
 
+  const exeWorkflowYaml = `name: Build Windows Executable (.exe Setup Installer)
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+  workflow_dispatch:
+
+jobs:
+  build-windows-exe:
+    name: Build Windows .exe Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web Application Assets
+        run: npm run build
+
+      - name: Package Windows Installer (.exe)
+        run: npx electron-builder --win nsis
+        env:
+          GH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows Setup .exe Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ISTEK-Browser-Windows-Installer
+          path: dist_electron/*.exe
+          retention-days: 30`;
+
   const handleCopyWorkflow = () => {
     navigator.clipboard.writeText(workflowYaml);
     setCopiedWorkflow(true);
     setTimeout(() => setCopiedWorkflow(false), 2000);
+  };
+
+  const handleCopyExeWorkflow = () => {
+    navigator.clipboard.writeText(exeWorkflowYaml);
+    setCopiedExeWorkflow(true);
+    setTimeout(() => setCopiedExeWorkflow(false), 2000);
   };
 
   return (
@@ -161,14 +209,26 @@ jobs:
 
           <button
             onClick={() => setActiveTab('apk')}
-            className={`px-3 py-2 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 ${
+            className={`px-3 py-2 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'apk'
                 ? 'border-emerald-500 text-emerald-400'
                 : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-            <span>GitHub APK Workflow</span>
+            <span>Android APK</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('exe')}
+            className={`px-3 py-2 text-xs font-bold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'exe'
+                ? 'border-blue-500 text-blue-400'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Monitor className="w-3.5 h-3.5 text-blue-400" />
+            <span>Windows .exe Setup</span>
           </button>
         </div>
 
@@ -406,6 +466,70 @@ jobs:
 
               <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 font-mono text-[11px] text-slate-300 max-h-44 overflow-y-auto leading-tight select-text">
                 <pre>{workflowYaml}</pre>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'exe' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                  <Monitor className="w-4 h-4 text-blue-400" />
+                  Windows .exe Installer Workflow
+                </h3>
+
+                <button
+                  onClick={handleCopyExeWorkflow}
+                  className="flex items-center gap-1 px-3 py-1 bg-blue-500/20 text-blue-300 hover:bg-blue-500/30 border border-blue-500/40 rounded-xl text-xs font-bold transition-all"
+                >
+                  {copiedExeWorkflow ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-blue-400" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy EXE Workflow</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-2.5 text-xs text-slate-300">
+                <div className="font-bold text-white text-xs flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-blue-400" />
+                  <span>ISTEK BROWSER Windows Setup (.exe) Features:</span>
+                </div>
+
+                <ul className="space-y-1.5 text-[11px] text-slate-300 list-disc list-inside leading-relaxed">
+                  <li>
+                    <strong className="text-white">EULA Terms Wizard:</strong> Includes mandatory License Agreement page with <code className="text-emerald-400 font-mono">Agree</code> & <code className="text-red-400 font-mono">Decline</code>. Next button unlocks when "Agree" is selected.
+                  </li>
+                  <li>
+                    <strong className="text-white">Install Folder Chooser:</strong> Allows choosing custom target installation directory on your PC.
+                  </li>
+                  <li>
+                    <strong className="text-white">Desktop Shortcut:</strong> Automatically places the <code className="text-blue-400 font-mono">ISTEK BROWSER</code> shortcut on your Windows desktop upon installation.
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 space-y-2 text-xs text-slate-300">
+                <div className="font-bold text-white text-xs mb-1 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-400"></span>
+                  How to build the Windows .exe on GitHub:
+                </div>
+                <ol className="list-decimal list-inside space-y-1 text-slate-300 text-[11px] leading-relaxed">
+                  <li>Push your repository code to GitHub on branch <code className="text-blue-400 font-mono">main</code>.</li>
+                  <li>Open your GitHub repo &rarr; navigate to the <strong>Actions</strong> tab.</li>
+                  <li>Run or watch the <strong>Build Windows Executable (.exe Setup Installer)</strong> action.</li>
+                  <li>Download the packaged installer artifact named <code className="text-blue-400 font-mono">ISTEK-Browser-Windows-Installer</code> containing your <code className="text-blue-400 font-mono">ISTEK-Browser-Setup.exe</code>!</li>
+                </ol>
+              </div>
+
+              <div className="bg-slate-950 p-3 rounded-2xl border border-slate-800 font-mono text-[11px] text-slate-300 max-h-44 overflow-y-auto leading-tight select-text">
+                <pre>{exeWorkflowYaml}</pre>
               </div>
             </div>
           )}

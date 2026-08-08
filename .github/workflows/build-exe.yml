@@ -1,0 +1,40 @@
+name: Build Windows Executable (.exe Setup Installer)
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "**" ]
+  workflow_dispatch:
+
+jobs:
+  build-windows-exe:
+    name: Build Windows .exe Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Web Application Assets
+        run: npm run build
+
+      - name: Package Windows Installer (.exe)
+        run: npx electron-builder --win nsis
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows Setup .exe Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ISTEK-Browser-Windows-Installer
+          path: dist_electron/*.exe
+          retention-days: 30
