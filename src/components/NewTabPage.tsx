@@ -61,8 +61,8 @@ export const NewTabPage: React.FC<NewTabPageProps> = ({
         {/* Top Header Row */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <IstekLogo size={36} />
-            <span className="text-2xl font-black tracking-wider text-white drop-shadow">ISTEK BROWSER</span>
+            <IstekLogo variant="full" size={44} lightText={true} />
+            <span className="text-xl font-black tracking-wider text-slate-300 drop-shadow border-l border-slate-700 pl-3">BROWSER</span>
           </div>
 
           <div className="flex items-center gap-3">

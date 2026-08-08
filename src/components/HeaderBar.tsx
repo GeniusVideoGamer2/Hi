@@ -78,9 +78,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
     <div className="bg-slate-900 text-slate-100 flex flex-col border-b border-slate-800 select-none shadow-md">
       {/* Tab Strip */}
       <div className="flex items-center px-2 pt-2 gap-1 overflow-x-auto no-scrollbar bg-slate-950/80">
-        <div className="flex items-center gap-1.5 px-2 py-1 text-xs font-black text-orange-500 tracking-wider">
-          <IstekLogo size={20} />
-          <span className="hidden sm:inline text-white font-black text-sm">ISTEK</span>
+        <div className="flex items-center gap-1.5 px-2 py-1 text-xs font-black text-blue-400 tracking-wider">
+          <IstekLogo variant="full" size={24} lightText={true} />
         </div>
 
         <div className="flex items-center gap-1 overflow-x-auto flex-1 no-scrollbar">
